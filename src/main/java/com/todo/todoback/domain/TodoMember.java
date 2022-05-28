@@ -39,11 +39,15 @@ public class TodoMember {
     @Column(name = "deldate", length = 100, nullable = true)
     private String deldate;
 
+    @Column(name = "role", length = 100, nullable = true)
+    @Enumerated(EnumType.STRING)
+    private Role role;
+
     @OneToMany(fetch = FetchType.LAZY,  mappedBy = "todoMember")
     private List<TodoContents> todoContents = new LinkedList<>();
 
     @Builder
-    public TodoMember(String userid, String userpw, String username, String userbirth, String useremail, String createdate, String deldate) {
+    public TodoMember(String userid, String userpw, String username, String userbirth, String useremail, String createdate, String deldate, Role role) {
         this.userid = userid;
         this.userpw = userpw;
         this.username = username;
@@ -51,5 +55,6 @@ public class TodoMember {
         this.useremail = useremail;
         this.createdate = createdate;
         this.deldate = deldate;
+        this.role = role;
     }
 }
