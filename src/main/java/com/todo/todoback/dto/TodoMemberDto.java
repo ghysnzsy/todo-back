@@ -1,2 +1,5 @@
-package com.todo.todoback.dto;public class TodoMemberDto {
+package com.todo.todoback.dto;
+
+
+public class TodoMemberDto {
 }

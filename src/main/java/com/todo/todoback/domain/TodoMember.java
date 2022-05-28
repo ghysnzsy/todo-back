@@ -14,12 +14,11 @@ import java.util.List;
 @Entity
 public class TodoMember {
 
-//    @Id
-//    @GeneratedValue(strategy = GenerationType.IDENTITY)
-//    private Long id;
-
     @Id
-    @Column( name = "userid", length = 30, nullable = false)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column( name = "userid", length = 30, nullable = false, unique = true)
     private String userid;
 
     @Column(name = "userpw", length = 100, nullable = false)
