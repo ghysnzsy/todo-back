@@ -8,13 +8,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
+import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
 import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 
 @Service
-public class LoginServiceImpl implements LoginService {
+public class LoginServiceImpl implements LoginService, Serializable {
 
     @Autowired
     TodoMemberRepository memberRepository;
@@ -33,6 +35,13 @@ public class LoginServiceImpl implements LoginService {
         SimpleDateFormat curDate = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         Date date = new Date();
 
+        // 권한
+        // u - ROLE_USER
+        // a -  ROLE_ADMIN
+        // m - ROLE_MASTER
+        String paramRole = map.get("role");
+        String authority =  paramRole.equals("u") ? Role.ROLE_USER.getValue() : ( paramRole.equals("a") ? Role.ROLE_ADMIN.getValue() : Role.ROLE_MASTER.getValue() );
+
         int resVal = memberRepository.createMember(
                 TodoMemberDto.builder()
                         .userid( map.get("userid") )
@@ -40,7 +49,7 @@ public class LoginServiceImpl implements LoginService {
                         .userbirth( map.get("userbirth") )
                         .useremail( map.get("useremail") )
                         .username( map.get("username") )
-//                        .role(Role.USER )
+                        .role( authority )
                         .createdate( curDate.format( date ) )
                         .build()
         );

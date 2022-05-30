@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.Id;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -16,6 +17,7 @@ import java.util.List;
 @NoArgsConstructor
 public class TodoMemberDto {
 
+    @Id
     private Long id;
     private String userid;
     private String userpw;
@@ -25,11 +27,11 @@ public class TodoMemberDto {
     private String createdate;
     private String deldate;
 
-    @Enumerated(EnumType.STRING)
-    private Role role;
+//    @Enumerated(EnumType.STRING)
+    private String role;
     private List<TodoContents> todoContents = new LinkedList<>();
 
-    public TodoMemberDto(Long id, String userid, String userpw, String username, String userbirth, String useremail, String createdate, String deldate, Role role, List<TodoContents> todoContents) {
+    public TodoMemberDto(Long id, String userid, String userpw, String username, String userbirth, String useremail, String createdate, String deldate, String role, List<TodoContents> todoContents) {
         this.id = id;
         this.userid = userid;
         this.userpw = userpw;

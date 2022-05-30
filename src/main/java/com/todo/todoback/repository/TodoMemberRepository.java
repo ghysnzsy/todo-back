@@ -8,10 +8,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import javax.transaction.Transactional;
+
 @Repository
-public interface TodoMemberRepository extends JpaRepository<TodoMember, String> {
+public interface TodoMemberRepository extends JpaRepository<TodoMember, Long> {
 
     // 회원정보 삽입
+    @Transactional
     @Modifying
     @Query( value = "insert into todo_member ( userid, userpw, username, userbirth, useremail, role, createdate ) values( :#{#member.userid}, :#{#member.userpw}, :#{#member.username}, :#{#member.userbirth}, :#{#member.useremail}, :#{#member.role}, :#{#member.createdate} )", nativeQuery = true )
     public int createMember( @Param("member") TodoMemberDto member );
@@ -19,5 +22,9 @@ public interface TodoMemberRepository extends JpaRepository<TodoMember, String> 
     // userid 중복 체크
     @Query( value = "select count(*) from todo_member where userid = :userid", nativeQuery = true )
     public int checkUserid( @Param("userid") String userid );
+
+    // userid로 사용자 정보 가져오기
+    @Query( value = "select * from todo_member where userid = :userid", nativeQuery = true )
+    public TodoMember findByUserId(@Param("userid") String userid);
 
 }

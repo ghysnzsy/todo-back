@@ -6,13 +6,14 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.LinkedList;
 import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
 @Entity
-public class TodoMember {
+public class TodoMember implements Serializable {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -39,7 +40,7 @@ public class TodoMember {
     @Column(name = "deldate", length = 100, nullable = true)
     private String deldate;
 
-    @Column(name = "role", length = 100, nullable = true)
+    @Column(name = "role", length = 10, nullable = false)
     @Enumerated(EnumType.STRING)
     private Role role;
 
