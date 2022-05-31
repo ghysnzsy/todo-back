@@ -8,6 +8,9 @@ import java.util.Map;
 
 public interface LoginService {
 
-    public TodoMemberDto createMember (@RequestBody Map<String, String> map ) throws NoSuchAlgorithmException;
+    public TodoMemberDto createMember ( Map<String, String> map ) throws NoSuchAlgorithmException;
 
+    public boolean checkDuplicateId( String userId );
+
+    public TodoMemberDto signIn( Map<String, String> map ) throws NoSuchAlgorithmException;
 }
