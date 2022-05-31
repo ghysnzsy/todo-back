@@ -68,6 +68,17 @@ public class LoginRestController {
 
     }
 
+    @GetMapping("/email")
+    public ResponseEntity<Boolean> checkUserEmail( @RequestParam(value="userEmail") String userEmail ) {
+
+        log.info("user email = {}", userEmail);
+
+        return ResponseEntity.ok(
+                loginService.checkDuplicateEmail( userEmail )
+        );
+
+    }
+
 
 }
 

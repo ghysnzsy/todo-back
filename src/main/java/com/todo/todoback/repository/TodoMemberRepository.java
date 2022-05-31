@@ -32,6 +32,14 @@ public interface TodoMemberRepository extends JpaRepository<TodoMember, Long> {
     public int checkUserid( @Param("userid") String userid );
 
     /**
+     * useremail 중복 체크
+     * @param userEmail
+     * @return
+     */
+    @Query( value = "select count(*) from todo_member where useremail = :userEmail", nativeQuery = true )
+    public int checkUserEmail( @Param("userEmail") String userEmail );
+
+    /**
      * userid로 사용자 정보 가져오기
      * @param userid
      * @return

@@ -78,15 +78,28 @@ public class LoginServiceImpl implements LoginService, Serializable {
         // 1.id 중복체크를 한다.
         int useridCnt = memberRepository.checkUserid( userId );
 
-        // 중복된 id가 존재하는 경우 : true값 반환
+        // 2.중복된 id가 존재하는 경우 : true값 반환
         if ( useridCnt > 0 ) return true;
 
-        // 중복되지 않은 경우 : false값 반환
+        // 3.중복되지 않은 경우 : false값 반환
         return false;
     }
 
     @Override
-    public TodoMemberDto signIn(Map<String, String> map) throws NoSuchAlgorithmException {
+    public boolean checkDuplicateEmail( String userEmail ) {
+
+        // 1.email 중복체크를 한다.
+        int useremailCnt = memberRepository.checkUserEmail( userEmail );
+
+        // 2.중복된 email이 존재하는 경우 : true값 반환
+        if ( useremailCnt > 0 ) return true;
+
+        // 3.중복되지 않은 경우 : false값 반환
+        return false;
+    }
+
+    @Override
+    public TodoMemberDto signIn( Map<String, String> map ) throws NoSuchAlgorithmException {
 
         String userId   = map.get("userId");
         String userPw = SHA256.encrypt( map.get("userPw") );
