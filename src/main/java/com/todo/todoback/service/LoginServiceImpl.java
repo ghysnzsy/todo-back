@@ -109,8 +109,12 @@ public class LoginServiceImpl implements LoginService, Serializable {
         if ( todoMember != null ) {
             System.out.println(todoMember.getUsername());
             return TodoMemberDto.builder()
-                    .username( todoMember.getUsername() )
                     .id( todoMember.getId() )
+                    .userid( userId )
+                    .username( todoMember.getUsername() )
+                    .useremail( todoMember.getUseremail() )
+                    .userbirth( todoMember.getUserbirth() )
+                    .role( todoMember.getRole().getValue() )
                     .build();
         }
 
