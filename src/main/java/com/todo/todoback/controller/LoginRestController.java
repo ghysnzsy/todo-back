@@ -1,10 +1,12 @@
 package com.todo.todoback.controller;
 
 import com.todo.todoback.dto.TodoMemberDto;
+import com.todo.todoback.jwt.TokenProvider;
 import com.todo.todoback.service.LoginService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.NoSuchAlgorithmException;
@@ -25,10 +27,12 @@ public class LoginRestController {
     @PostMapping("/signin")
     public ResponseEntity<TodoMemberDto> signUpMember( @RequestBody Map<String, String> map ) {
 
-        log.info( "user id = {}", map.get("userId") );
+        String userId = map.get("userId");
+
+        log.info( "user id = {}", userId );
 
         try {
-            return ResponseEntity.ok( loginService.signIn( map ) );
+            return loginService.signIn( map ) ;
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
@@ -42,13 +46,14 @@ public class LoginRestController {
     @PostMapping
     public ResponseEntity<TodoMemberDto> createMember (@RequestBody Map<String, String> map ) {
 
-        log.info( "user id = {}, user name = {}, user birth = {}, user email = {}", map.get("userId"), map.get("userName"), map.get("user birth"), map.get("userEmail") );
+        log.info( "[회원가입] user id = {}, user name = {}, user birth = {}, user email = {}", map.get("userId"), map.get("userName"), map.get("userBirth"), map.get("userEmail") );
 
         try {
             return ResponseEntity.ok( loginService.createMember( map ) );
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
+
 
     }
 

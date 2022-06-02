@@ -1,11 +1,22 @@
 package com.todo.todoback.service;
 
 import com.todo.todoback.domain.Role;
-import com.todo.todoback.domain.TodoMember;
 import com.todo.todoback.dto.TodoMemberDto;
+import com.todo.todoback.jwt.JwtFilter;
+import com.todo.todoback.jwt.TokenProvider;
 import com.todo.todoback.repository.TodoMemberRepository;
 import com.todo.todoback.util.SHA256;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -15,11 +26,18 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Map;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class LoginServiceImpl implements LoginService, Serializable {
 
     @Autowired
     TodoMemberRepository memberRepository;
+
+    private final TokenProvider tokenProvider;
+    private final AuthenticationManagerBuilder authenticationManagerBuilder;
+
+    private final PasswordEncoder passwordEncoder;
 
     /**
      * 회원가입
@@ -42,10 +60,13 @@ public class LoginServiceImpl implements LoginService, Serializable {
         String paramRole = map.get("role");
         String authority =  paramRole.equals("u") ? Role.ROLE_USER.getValue() : ( paramRole.equals("a") ? Role.ROLE_ADMIN.getValue() : Role.ROLE_MASTER.getValue() );
 
+        String userId = map.get("userId");
+        String userPw = passwordEncoder.encode( map.get("userPw") );
+
         int resVal = memberRepository.createMember(
                 TodoMemberDto.builder()
-                        .userid( map.get("userId") )
-                        .userpw( SHA256.encrypt( map.get("userPw") ) ) // pw 암호화 : sha256
+                        .userid( userId )
+                        .userpw( userPw )
                         .userbirth( map.get("userBirth") )
                         .useremail( map.get("userEmail") )
                         .username( map.get("userName") )
@@ -53,14 +74,15 @@ public class LoginServiceImpl implements LoginService, Serializable {
                         .createdate( curDate.format( date ) )
                         .build()
         );
-
+        log.info("[회원가입 서비스] result : {}", resVal);
         // 2. 멤버생성이 성공한 경우.
         if ( resVal == 1 ) {
+
             return TodoMemberDto.builder()
-                    .userid(map.get("userid"))
-                    .userbirth(map.get("userbirth"))
-                    .useremail(map.get("useremail"))
-                    .username(map.get("username"))
+                    .userid( userId )
+                    .userbirth( map.get("userbirth") )
+                    .useremail( map.get("useremail") )
+                    .username( map.get("username") )
                     .build();
         }
 
@@ -99,26 +121,49 @@ public class LoginServiceImpl implements LoginService, Serializable {
     }
 
     @Override
-    public TodoMemberDto signIn( Map<String, String> map ) throws NoSuchAlgorithmException {
+    public ResponseEntity<TodoMemberDto> signIn(Map<String, String> map ) throws NoSuchAlgorithmException {
 
         String userId   = map.get("userId");
-        String userPw = SHA256.encrypt( map.get("userPw") );
+        String userPw = passwordEncoder.encode( map.get("userPw") );
+        log.info("user pw 1 : {}", userPw);
+        log.info("user pw 2 : {}", map.get("userPw"));
+        log.info("user pw 2 : {}", SHA256.encrypt(map.get("userPw")));
+//        TodoMember todoMember = memberRepository.signIn(userId, userPw);
 
-        TodoMember todoMember = memberRepository.signIn(userId, userPw);
+//        if ( todoMember != null ) {
 
-        if ( todoMember != null ) {
-            System.out.println(todoMember.getUsername());
-            return TodoMemberDto.builder()
-                    .id( todoMember.getId() )
-                    .userid( userId )
-                    .username( todoMember.getUsername() )
-                    .useremail( todoMember.getUseremail() )
-                    .userbirth( todoMember.getUserbirth() )
-                    .role( todoMember.getRole().getValue() )
-                    .build();
-        }
+            // 토큰을 발행한다.
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken( userId, map.get("userPw") );
+            log.info("[회원가입 서비스] result2 {}", authenticationToken.getAuthorities());
+            Authentication authenticate = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+            log.info("[회원가입 서비스] result3");
+            SecurityContextHolder.getContext().setAuthentication( authenticate );
+            log.info("[회원가입 서비스] result4");
+            String jwt = tokenProvider.createToken( authenticate );
+            log.info("[회원가입 서비스] result5");
+            HttpHeaders httpHeaders = new HttpHeaders();
+            httpHeaders.add(JwtFilter.AUTHORIZATION_HEADER, "Bearer " + jwt);
+            httpHeaders.add(JwtFilter.AUTHORIZATION_HEADER, "Bearer ");
+            log.info("[회원가입 서비스] result6 : {}", jwt);
 
-        return null;
+            return new ResponseEntity<>(
+                    TodoMemberDto.builder()
+//                            .id( todoMember.getId() )
+//                            .userid( userId )
+//                            .username( todoMember.getUsername() )
+//                            .useremail( todoMember.getUseremail() )
+//                            .userbirth( todoMember.getUserbirth() )
+//                            .role( todoMember.getRole().getValue() )
+                            .token( jwt )
+                            .build(),
+                    httpHeaders,
+                    HttpStatus.OK
+            );
+
+
+//        }
+
+//        return null;
     }
 
 }

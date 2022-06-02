@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import javax.transaction.Transactional;
+import java.util.Optional;
 
 @Repository
 public interface TodoMemberRepository extends JpaRepository<TodoMember, Long> {
@@ -45,7 +46,7 @@ public interface TodoMemberRepository extends JpaRepository<TodoMember, Long> {
      * @return
      */
     @Query( value = "select * from todo_member where userid = :userid", nativeQuery = true )
-    public TodoMember findByUserId(@Param("userid") String userid);
+    public Optional<TodoMember> findByUserId(@Param("userid") String userid);
 
 
     /**

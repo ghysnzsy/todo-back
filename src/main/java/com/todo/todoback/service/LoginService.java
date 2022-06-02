@@ -1,6 +1,7 @@
 package com.todo.todoback.service;
 
 import com.todo.todoback.dto.TodoMemberDto;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.security.NoSuchAlgorithmException;
@@ -13,7 +14,7 @@ public interface LoginService {
     public boolean checkDuplicateId( String userId );
     public boolean checkDuplicateEmail( String userEmail );
 
-    public TodoMemberDto signIn( Map<String, String> map ) throws NoSuchAlgorithmException;
+    public ResponseEntity<TodoMemberDto> signIn(Map<String, String> map ) throws NoSuchAlgorithmException;
 
 
 }

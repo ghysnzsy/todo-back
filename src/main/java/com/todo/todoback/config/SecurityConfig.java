@@ -1,20 +1,35 @@
 package com.todo.todoback.config;
 
+import com.todo.todoback.jwt.JwtAccessDeniedHandler;
+import com.todo.todoback.jwt.JwtAuthenticationEntryPoint;
+import com.todo.todoback.jwt.JwtSecurityConfig;
+import com.todo.todoback.jwt.TokenProvider;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 
 @Slf4j
-@EnableWebSecurity
+@Configuration
 public class SecurityConfig  {
 
-//    @Autowired
-//    private final JwtAuthenticationEntryPoint unauthorizedHandler;
+    private final TokenProvider tokenProvider;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+    private final JwtAccessDeniedHandler jwtAccessDeniedHandler;
+
+    public SecurityConfig(
+            TokenProvider tokenProvider,
+            JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint,
+            JwtAccessDeniedHandler jwtAccessDeniedHandler
+    ) {
+        this.tokenProvider = tokenProvider;
+        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
+        this.jwtAccessDeniedHandler = jwtAccessDeniedHandler;
+    }
 
     @Bean
     public WebSecurityCustomizer webSecurityCustomizer() {
@@ -23,12 +38,39 @@ public class SecurityConfig  {
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        log.info("securityFilterChain");
+        return http
 
-        return http.csrf().disable()
+                // cross-origin 처리
                 .cors().and()
-                .csrf().disable() //(2)
+
+                // token을 사용하는 방식이기 때문에 csrf를 disable
+                .csrf().disable()
+
+                // jwt를 쓰려면 Spring Security에서 기본적으로 지원하는 Session설정을 해제해야 한다.
                 .sessionManagement()
                 .sessionCreationPolicy(SessionCreationPolicy.STATELESS).and()
+
+                // X-Frame-Options : 이 홈페이지는 동일한 도메인의 페이지 내에서만 표시할 수 있음
+                .headers()
+                .frameOptions()
+                .sameOrigin()
+                .and()
+
+                .authorizeRequests()
+                .antMatchers("/member").permitAll()
+                .antMatchers("/member/**").permitAll()
+                .antMatchers("http://localhost:3000/member").permitAll()
+                .antMatchers("http://localhost:3000/member/**").permitAll()
+                .antMatchers("http://localhost:8080/member").permitAll()
+                .antMatchers("http://localhost:8080/member/**").permitAll()
+//                .antMatchers("/member/email").permitAll()
+                .anyRequest().authenticated()
+                .and()
+
+                .apply( new JwtSecurityConfig( tokenProvider ) )
+                .and()
+
                 .build();
     }
 
@@ -36,6 +78,7 @@ public class SecurityConfig  {
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
 
     // HttpSecurity를 인자로 받는 configure메서드에서 http.cors()로 cors 옵션을 활성화 해줄 수 있다.
     // 이때 만일 처음에 정의했던 WebMvcConfigurer 구현체가 존재한다면 corsConfigurationSource()는 추가로 정의 해줄 필요가 없고
