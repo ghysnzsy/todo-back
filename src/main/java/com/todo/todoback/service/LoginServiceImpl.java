@@ -125,45 +125,24 @@ public class LoginServiceImpl implements LoginService, Serializable {
 
         String userId   = map.get("userId");
         String userPw = passwordEncoder.encode( map.get("userPw") );
-        log.info("user pw 1 : {}", userPw);
-        log.info("user pw 2 : {}", map.get("userPw"));
-        log.info("user pw 2 : {}", SHA256.encrypt(map.get("userPw")));
-//        TodoMember todoMember = memberRepository.signIn(userId, userPw);
 
-//        if ( todoMember != null ) {
+        // 토큰을 발행한다.
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken( userId, map.get("userPw") );
+        Authentication authenticate = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
+        SecurityContextHolder.getContext().setAuthentication( authenticate );
+        String jwt = tokenProvider.createToken( authenticate );
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.add(JwtFilter.AUTHORIZATION_HEADER, "Bearer " + jwt);
+        httpHeaders.add(JwtFilter.AUTHORIZATION_HEADER, "Bearer ");
 
-            // 토큰을 발행한다.
-            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken( userId, map.get("userPw") );
-            log.info("[회원가입 서비스] result2 {}", authenticationToken.getAuthorities());
-            Authentication authenticate = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
-            log.info("[회원가입 서비스] result3");
-            SecurityContextHolder.getContext().setAuthentication( authenticate );
-            log.info("[회원가입 서비스] result4");
-            String jwt = tokenProvider.createToken( authenticate );
-            log.info("[회원가입 서비스] result5");
-            HttpHeaders httpHeaders = new HttpHeaders();
-            httpHeaders.add(JwtFilter.AUTHORIZATION_HEADER, "Bearer " + jwt);
-            httpHeaders.add(JwtFilter.AUTHORIZATION_HEADER, "Bearer ");
-            log.info("[회원가입 서비스] result6 : {}", jwt);
+        return new ResponseEntity<>(
+                TodoMemberDto.builder()
+                        .token( jwt )
+                        .build(),
+                httpHeaders,
+                HttpStatus.OK
+        );
 
-            return new ResponseEntity<>(
-                    TodoMemberDto.builder()
-//                            .id( todoMember.getId() )
-//                            .userid( userId )
-//                            .username( todoMember.getUsername() )
-//                            .useremail( todoMember.getUseremail() )
-//                            .userbirth( todoMember.getUserbirth() )
-//                            .role( todoMember.getRole().getValue() )
-                            .token( jwt )
-                            .build(),
-                    httpHeaders,
-                    HttpStatus.OK
-            );
-
-
-//        }
-
-//        return null;
     }
 
 }

@@ -26,20 +26,9 @@ public class CustomUserDetailsService implements UserDetailsService {
     @Override
     @Transactional
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-//        User user = createUser(repository.findByUserId(username));
-//        System.out.println("aa " + user.getUsername());
-//        System.out.println("bb " + user.getPassword());
-//        System.out.println("cc " + user.getAuthorities());
-        System.out.println("hihihihih " + username);
         return repository.findByUserId(username)
                 .map(user -> createUser( user ) )
                 .orElseThrow( () -> new UsernameNotFoundException( username + " -> 데이터베이스에서 찾을 수 없습니다." ) );
-//        System.out.println("hihihihih2" + user.getRole());
-//        return createUser( repository.findByUserId(username) );
-//        List<GrantedAuthority> authorityList = new ArrayList<>();
-//        authorityList.add( new SimpleGrantedAuthority( user.getRole().toString()) );
-//        return new User( username, user.getUserpw(), authorityList );
-
     }
 
     public User createUser(TodoMember user) {
