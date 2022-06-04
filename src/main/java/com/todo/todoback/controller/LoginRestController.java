@@ -1,5 +1,6 @@
 package com.todo.todoback.controller;
 
+import com.todo.todoback.dto.SignInResponseDto;
 import com.todo.todoback.dto.TodoMemberDto;
 import com.todo.todoback.jwt.TokenProvider;
 import com.todo.todoback.service.LoginService;
@@ -25,14 +26,12 @@ public class LoginRestController {
      * @return
      */
     @PostMapping("/signin")
-    public ResponseEntity<TodoMemberDto> signUpMember( @RequestBody Map<String, String> map ) {
+    public ResponseEntity<SignInResponseDto> signUpMember(@RequestBody Map<String, String> map ) {
 
-        String userId = map.get("userId");
-
-        log.info( "user id = {}", userId );
+        log.info( "user id = {}", map.get("userId") );
 
         try {
-            return loginService.signIn( map ) ;
+            return ResponseEntity.ok( loginService.signIn( map ) );
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }

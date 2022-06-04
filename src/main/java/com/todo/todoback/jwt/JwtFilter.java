@@ -1,66 +1,68 @@
 package com.todo.todoback.jwt;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.util.StringUtils;
-import org.springframework.web.filter.GenericFilterBean;
+import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
 /**
- * JWT를 위한 커스텀 필터를 만들기 위한 JwtFilter 클래스
+ * 토큰을 생성해주고 검증하는 등 토큰 관리 객체
  */
 @Slf4j
-public class JwtFilter extends GenericFilterBean {
+@RequiredArgsConstructor
+public class JwtFilter extends OncePerRequestFilter {
 
     public static final String AUTHORIZATION_HEADER = "Authorization";
-
-    private TokenProvider tokenProvider;
-
-    public JwtFilter( TokenProvider tokenProvider ) {
-        this.tokenProvider = tokenProvider;
-    }
+    public static final String REFRESH_HEADER = "Refresh";
+    private final TokenProvider tokenProvider;
 
     @Override
-    public void doFilter( ServletRequest request, ServletResponse response, FilterChain chain ) throws IOException, ServletException {
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
-        HttpServletRequest httpServletRequest = ( HttpServletRequest ) request;
-        String jwt = resolveToken( httpServletRequest );
-        String reqURI = httpServletRequest.getRequestURI();
-        String reqURL = String.valueOf(httpServletRequest.getRequestURL());
+        String jwt = resolveToken( request, AUTHORIZATION_HEADER );
+        if ( jwt != null && tokenProvider.validateToken( jwt ) == TokenProvider.JwtCode.ACCESS ) {
 
-        // 토큰 유효성 검사
-        if ( StringUtils.hasText( jwt ) && tokenProvider.validateToken( jwt ) ) {
+            Authentication authentication = tokenProvider.getAuthentication( jwt );
+            SecurityContextHolder.getContext().setAuthentication( authentication );
+            log.info( "set Authentication to security context for '{}', uri: {}", authentication.getName(), request.getRequestURI() );
 
-            // SecurityContext 에 저장
-            SecurityContextHolder.getContext().setAuthentication(
-                    tokenProvider.getAuthentication( jwt )
-            );
-            log.info( "Security Context에 인증 정보를 저장하였습니다. uri : {}", reqURI );
+        } else if ( jwt != null && tokenProvider.validateToken( jwt ) == TokenProvider.JwtCode.EXPIRED ) {
 
-        } else {
-            log.info( "유효한 JWT 토큰이 없습니다. uri : {}, url : {}", reqURI, reqURL);
+            String refesh = resolveToken( request, REFRESH_HEADER );
+            // refresh token을 확인해서 발급해준다.
+            if ( refesh != null && tokenProvider.validateToken( refesh ) == TokenProvider.JwtCode.ACCESS ) {
+
+                String newRefresh = tokenProvider.reissueRefreshToken( refesh );
+                if ( newRefresh != null ) {
+
+                    response.setHeader( REFRESH_HEADER, "Bear-" + newRefresh );
+
+                    // Access token 생성
+                    Authentication authentication = tokenProvider.getAuthentication(refesh);
+                    response.setHeader( AUTHORIZATION_HEADER, "Bearer-" + tokenProvider.createAccessToken( authentication ) );
+                    SecurityContextHolder.getContext().setAuthentication( authentication );
+
+                    log.info("reissue refresh token & access token");
+                }
+            }
+        }  else {
+            log.info("no valid JWT token found, uri : {}", request.getRequestURI());
         }
 
-        chain.doFilter( request, response);
+        filterChain.doFilter( request, response );
     }
 
-    /**
-     * Request Header 에서 토큰 정보를 가져옮
-     * @param request
-     * @return
-     */
-    public String resolveToken( HttpServletRequest request ) {
-        String bearerToken = request.getHeader( AUTHORIZATION_HEADER );
-
-        if ( StringUtils.hasText( bearerToken ) && bearerToken.startsWith( "Bearer " ) )
+    private String resolveToken( HttpServletRequest req, String header ) {
+        String bearerToken = req.getHeader( header );
+        if ( bearerToken != null && bearerToken.startsWith("Bearer-") )
             return bearerToken.substring(7);
-
         return null;
     }
 

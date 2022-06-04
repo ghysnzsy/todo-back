@@ -1,19 +1,26 @@
 package com.todo.todoback.jwt;
 
 
+import com.todo.todoback.domain.RefreshToken;
+import com.todo.todoback.repository.RefreshTokenRepository;
+import com.todo.todoback.service.CustomUserDetailsService;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.InitializingBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
+import javax.transaction.Transactional;
 import java.security.Key;
 import java.util.Arrays;
 import java.util.Collection;
@@ -27,23 +34,37 @@ import java.util.stream.Collectors;
 @Component
 public class TokenProvider implements InitializingBean {
 
+    @Autowired
+    private final CustomUserDetailsService customUserDetailsService;
+    @Autowired
+    private final RefreshTokenRepository refreshTokenRepository;
     private static final String AUTHORITIES_KEY = "auth";
-
     private final String secret;
-    private final long tokenValidityInMilliseconds;
+    private final long accessTokenValidityInMilliseconds;
+    private final long refreshTokenValidityInMilliseconds;
 
     private Key key;
 
     /**
      * yml설정 파일로부터 값을 가져온다.
+     *
+     * @param customUserDetailsService
+     * @param refreshTokenRepository
      * @param secret
-     * @param tokenValidityInMilliseconds
+     * @param accessTokenValidityInMilliseconds
      */
     public TokenProvider(
+            CustomUserDetailsService customUserDetailsService,
+            RefreshTokenRepository refreshTokenRepository,
             @Value( "${jwt.secret}" ) String secret,
-            @Value( "${jwt.token-validity-in-seconds}" ) long tokenValidityInMilliseconds) {
+            @Value( "${jwt.access-token-validity-in-seconds}" ) long accessTokenValidityInMilliseconds,
+            @Value( "${jwt.refresh-token-validity-in-seconds}" ) long refreshTokenValidityInMilliseconds
+    ) {
+        this.customUserDetailsService = customUserDetailsService;
+        this.refreshTokenRepository = refreshTokenRepository;
         this.secret = secret;
-        this.tokenValidityInMilliseconds = tokenValidityInMilliseconds;
+        this.accessTokenValidityInMilliseconds = accessTokenValidityInMilliseconds * 1000;
+        this.refreshTokenValidityInMilliseconds = refreshTokenValidityInMilliseconds * 1000;
     }
 
     /**
@@ -62,14 +83,14 @@ public class TokenProvider implements InitializingBean {
      * @param authentication
      * @return
      */
-    public String createToken( Authentication authentication ) {
+    public String createAccessToken( Authentication authentication ) {
 
         String authorities = authentication.getAuthorities().stream()
                 .map( GrantedAuthority::getAuthority )
                 .collect( Collectors.joining() );
 
         long now = ( new Date() ).getTime();
-        Date validity = new Date( now + this.tokenValidityInMilliseconds );
+        Date validity = new Date( now + this.accessTokenValidityInMilliseconds );
 
         return Jwts.builder()
                 .setSubject( authentication.getName() )
@@ -93,13 +114,16 @@ public class TokenProvider implements InitializingBean {
                 .parseClaimsJws(token)
                 .getBody();
 
+        /*
         Collection<? extends GrantedAuthority> authorities = Arrays.stream( claims.get( AUTHORITIES_KEY ).toString().split(",") )
                 .map( SimpleGrantedAuthority::new )
                 .collect( Collectors.toList() );
 
         User principal = new User(claims.getSubject(), "", authorities);
-
         return new UsernamePasswordAuthenticationToken( principal, token, authorities );
+         */
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername(claims.getSubject());
+        return new UsernamePasswordAuthenticationToken( userDetails, token, userDetails.getAuthorities() );
     }
 
     /**
@@ -107,7 +131,8 @@ public class TokenProvider implements InitializingBean {
      * @param token
      * @return
      */
-    public boolean validateToken( String token ) {
+    public JwtCode validateToken( String token ) {
+        /*
         try {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
@@ -121,6 +146,67 @@ public class TokenProvider implements InitializingBean {
             log.info("JWT 토큰이 잘못되었습니다.");
         }
         return false;
+         */
+
+        try {
+            Jwts.parserBuilder().setSigningKey( key ).build().parseClaimsJws( token );
+            return JwtCode.ACCESS;
+        } catch ( ExpiredJwtException e ) {
+            // 만료된 경우에는 refresh token을 확인하기 위해
+            return JwtCode.EXPIRED;
+        } catch ( JwtException | IllegalArgumentException e ) {
+            log.info(" jwt exception : {}", e);
+        }
+        return JwtCode.DENIED;
+    }
+
+    @Transactional
+    public String reissueRefreshToken( String refreshToken ) throws RuntimeException {
+
+        //  refresh token을 데이터베이스의 값과 비교
+        Authentication authentication = getAuthentication( refreshToken );
+
+        RefreshToken findRefreshToken = refreshTokenRepository.findByUserId( authentication.getName() )
+                .orElseThrow( () -> new UsernameNotFoundException( "User id : " + authentication.getName() + " was not found " ));
+
+        if ( findRefreshToken.getToken().equals( refreshToken ) ) {
+            // 새로운 생성
+            String newRefreshToken = createAccessToken( authentication );
+            findRefreshToken.changeToken( newRefreshToken );
+            return newRefreshToken;
+        } else {
+            log.info( "refresh 토큰이 일치하지 않습니다." );
+            return null;
+        }
+
+    }
+
+    @Transactional
+    public String issueRefreshToken( Authentication authentication ) {
+
+        String newRefreshToken = createAccessToken( authentication );
+
+        // 기존 것이 있다면 바꿔주고, 없다면 만들어준다.
+        refreshTokenRepository.findByUserId( authentication.getName() )
+                .ifPresentOrElse(
+                        r -> {
+                            r.changeToken( newRefreshToken );
+                            log.info("issueRefreshToken method | change token");
+                        },
+                        () -> {
+                            RefreshToken token = RefreshToken.createToken( authentication.getName(), newRefreshToken );
+                            log.info("issueRefreshToken method | save token id : {}, token : {}", token.getUserId(), token.getToken());
+                            refreshTokenRepository.save(token);
+                        }
+                    );
+
+        return newRefreshToken;
+    }
+
+    public static enum JwtCode {
+        DENIED,
+        ACCESS,
+        EXPIRED
     }
 
 }

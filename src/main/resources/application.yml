@@ -1,15 +1,22 @@
 spring:
+  # database
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     url: jdbc:mysql://localhost:3306/todo
     username: root
     password: DongunKim91
+  # jpa
   jpa:
     show-sql: true
     hibernate:
       ddl-auto: update
     generate-ddl: true
+  # redis
+  redis:
+    host: localhost
+    port: 6379
 
+# log
 logging:
   level:
     root: info
@@ -19,5 +26,7 @@ jwt:
   # HS512 알고리즘을 사용할 것이기 때문에 512bit, 즉 64byte 이상의 secret key를 사용해야 한다.
   # key : "silvernine-tech-spring-boot-jwt-tutorial-secret-silvernine-tech-spring-boot-jwt-tutorial-secret"를 base64로 변환
   secret : c2lsdmVybmluZS10ZWNoLXNwcmluZy1ib290LWp3dC10dXRvcmlhbC1zZWNyZXQtc2lsdmVybmluZS10ZWNoLXNwcmluZy1ib290LWp3dC10dXRvcmlhbC1zZWNyZXQK
-  # 토큰유효기간 : 3일
-  token-validity-in-seconds: 259200
+  # access-token : 토큰유효시간 - 30초
+  access-token-validity-in-seconds: 30
+  # refresh-token : 토큰유효기간 - 3일
+  refresh-token-validity-in-seconds: 259200

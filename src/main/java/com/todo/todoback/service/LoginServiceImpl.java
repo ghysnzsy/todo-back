@@ -1,21 +1,23 @@
 package com.todo.todoback.service;
 
 import com.todo.todoback.domain.Role;
+import com.todo.todoback.dto.SignInResponseDto;
 import com.todo.todoback.dto.TodoMemberDto;
-import com.todo.todoback.jwt.JwtFilter;
+import com.todo.todoback.jwt.JwtFilter_bak;
 import com.todo.todoback.jwt.TokenProvider;
 import com.todo.todoback.repository.TodoMemberRepository;
-import com.todo.todoback.util.SHA256;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -32,12 +34,16 @@ import java.util.Map;
 public class LoginServiceImpl implements LoginService, Serializable {
 
     @Autowired
-    TodoMemberRepository memberRepository;
+    private TodoMemberRepository memberRepository;
 
-    private final TokenProvider tokenProvider;
-    private final AuthenticationManagerBuilder authenticationManagerBuilder;
+    @Autowired
+    private CustomUserDetailsService customUserDetailsService;
 
     private final PasswordEncoder passwordEncoder;
+
+    private final TokenProvider tokenProvider;
+
+
 
     /**
      * 회원가입
@@ -121,19 +127,35 @@ public class LoginServiceImpl implements LoginService, Serializable {
     }
 
     @Override
-    public ResponseEntity<TodoMemberDto> signIn(Map<String, String> map ) throws NoSuchAlgorithmException {
+    public SignInResponseDto signIn(Map<String, String> map ) throws NoSuchAlgorithmException {
 
         String userId   = map.get("userId");
-        String userPw = passwordEncoder.encode( map.get("userPw") );
+        String userPw = map.get("userPw") ;
 
+        UserDetails userDetails = customUserDetailsService.loadUserByUsername( userId );
+        if ( !passwordEncoder.matches( userPw, userDetails.getPassword() ) ) {
+            throw new BadCredentialsException(userDetails.getUsername() + " invalid password");
+        }
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                userDetails.getUsername(),
+                userDetails.getPassword(),
+                userDetails.getAuthorities()
+        );
+
+        return SignInResponseDto.builder()
+                .accessToken( "Bearer-" + tokenProvider.createAccessToken( authentication ) )
+                .refreshToken( "Bearer-" + tokenProvider.issueRefreshToken( authentication ) )
+                .build();
+        /*
         // 토큰을 발행한다.
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken( userId, map.get("userPw") );
         Authentication authenticate = authenticationManagerBuilder.getObject().authenticate(authenticationToken);
         SecurityContextHolder.getContext().setAuthentication( authenticate );
-        String jwt = tokenProvider.createToken( authenticate );
+        String jwt = tokenProvider.createAccessToken( authenticate );
         HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.add(JwtFilter.AUTHORIZATION_HEADER, "Bearer " + jwt);
-        httpHeaders.add(JwtFilter.AUTHORIZATION_HEADER, "Bearer ");
+        httpHeaders.add(JwtFilter_bak.AUTHORIZATION_HEADER, "Bearer-" + jwt);
+        httpHeaders.add(JwtFilter_bak.AUTHORIZATION_HEADER, "Bearer ");
 
         return new ResponseEntity<>(
                 TodoMemberDto.builder()
@@ -142,6 +164,7 @@ public class LoginServiceImpl implements LoginService, Serializable {
                 httpHeaders,
                 HttpStatus.OK
         );
+         */
 
     }
 

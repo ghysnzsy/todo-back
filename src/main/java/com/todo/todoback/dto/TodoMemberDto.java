@@ -25,7 +25,6 @@ public class TodoMemberDto {
 
     private String token;
 
-//    @Enumerated(EnumType.STRING)
     private String role;
     private List<TodoContents> todoContents = new LinkedList<>();
 
