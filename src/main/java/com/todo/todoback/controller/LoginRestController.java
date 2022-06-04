@@ -26,7 +26,7 @@ public class LoginRestController {
      * @return
      */
     @PostMapping("/signin")
-    public ResponseEntity<SignInResponseDto> signUpMember(@RequestBody Map<String, String> map ) {
+    public ResponseEntity<SignInResponseDto> signInMember(@RequestBody Map<String, String> map ) {
 
         log.info( "user id = {}", map.get("userId") );
 
