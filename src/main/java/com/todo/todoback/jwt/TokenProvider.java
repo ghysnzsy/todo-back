@@ -162,7 +162,6 @@ public class TokenProvider implements InitializingBean {
 
     @Transactional
     public String reissueRefreshToken( String refreshToken ) throws RuntimeException {
-
         //  refresh token을 데이터베이스의 값과 비교
         Authentication authentication = getAuthentication( refreshToken );
 
