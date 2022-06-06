@@ -15,7 +15,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("/member")
+@RequestMapping("/auth")
 public class LoginRestController {
 
     @Autowired
@@ -42,7 +42,7 @@ public class LoginRestController {
      * @param map
      * @return
      */
-    @PostMapping
+    @PostMapping("/signup")
     public ResponseEntity<TodoMemberDto> createMember (@RequestBody Map<String, String> map ) {
 
         log.info( "[회원가입] user id = {}, user name = {}, user birth = {}, user email = {}", map.get("userId"), map.get("userName"), map.get("userBirth"), map.get("userEmail") );
@@ -61,7 +61,7 @@ public class LoginRestController {
      * @param userId
      * @return
      */
-    @GetMapping
+    @GetMapping("/userid")
     public ResponseEntity<Boolean> checkUserId( @RequestParam(value="userId") String userId ) {
 
         log.info("user id = {}", userId);
@@ -81,6 +81,12 @@ public class LoginRestController {
                 loginService.checkDuplicateEmail( userEmail )
         );
 
+    }
+
+    @PostMapping("/refreshToken")
+    public ResponseEntity<Map> refreshToken(@RequestHeader Map<String, Object> map) {
+        log.info("refresh token controller");
+        return ResponseEntity.ok(map);
     }
 
 

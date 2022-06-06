@@ -58,16 +58,9 @@ public class SecurityConfig  {
                 .and()
 
                 .authorizeRequests()
-                .antMatchers("/member").permitAll()
-                .antMatchers("/member/**").permitAll()
-                .antMatchers("http://localhost:3000/member").permitAll()
-                .antMatchers("http://localhost:3000/member/**").permitAll()
-                .antMatchers("http://localhost:8080/member").permitAll()
-                .antMatchers("http://localhost:8080/member/**").permitAll()
-//                .antMatchers("/member/email").permitAll()
+                .antMatchers("/auth/**").permitAll()
                 .anyRequest().authenticated()
                 .and()
-
                 .apply( new JwtSecurityConfig( tokenProvider ) )
                 .and()
 
