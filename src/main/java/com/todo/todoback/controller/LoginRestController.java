@@ -83,9 +83,11 @@ public class LoginRestController {
 
     }
 
+    // 토큰 재발행
     @PostMapping("/refreshToken")
     public ResponseEntity<Map> refreshToken(@RequestHeader Map<String, Object> map) {
-        log.info("refresh token controller");
+        log.info("refresh token controller : {}", map.get("refresh"));
+
         return ResponseEntity.ok(map);
     }
 

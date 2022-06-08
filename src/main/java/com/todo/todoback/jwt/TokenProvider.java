@@ -101,6 +101,28 @@ public class TokenProvider implements InitializingBean {
     }
 
     /**
+     *  Refresh Token 발급
+     * @param authentication
+     * @return
+     */
+    public String createRefreshToken( Authentication authentication ) {
+
+        String authorities = authentication.getAuthorities().stream()
+                .map( GrantedAuthority::getAuthority )
+                .collect( Collectors.joining() );
+
+        long now = ( new Date() ).getTime();
+        Date validity = new Date( now + this.refreshTokenValidityInMilliseconds );
+
+        return Jwts.builder()
+                .setSubject( authentication.getName() )
+                .claim( AUTHORITIES_KEY, authorities )
+                .signWith( key, SignatureAlgorithm.HS512 )
+                .setExpiration( validity )
+                .compact();
+    }
+
+    /**
      * token을 매개변수로 받아서, 토큰에 담긴 정보를 이용해 Authentication 객체를 반환
      * @param token
      * @return
@@ -183,7 +205,7 @@ public class TokenProvider implements InitializingBean {
     @Transactional
     public String issueRefreshToken( Authentication authentication ) {
 
-        String newRefreshToken = createAccessToken( authentication );
+        String newRefreshToken = createRefreshToken( authentication );
 
         // 기존 것이 있다면 바꿔주고, 없다면 만들어준다.
         refreshTokenRepository.findByUserId( authentication.getName() )
