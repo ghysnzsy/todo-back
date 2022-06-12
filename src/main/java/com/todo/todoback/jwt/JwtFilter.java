@@ -28,15 +28,12 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         String jwt = resolveToken( request, AUTHORIZATION_HEADER );
-        log.info("jwt jwt resolve : {}", jwt);
         if ( jwt != null && tokenProvider.validateToken( jwt ) == TokenProvider.JwtCode.ACCESS ) {
-            log.info("1-1");
             Authentication authentication = tokenProvider.getAuthentication( jwt );
             SecurityContextHolder.getContext().setAuthentication( authentication );
             log.info( "set Authentication to security context for '{}', uri: {}", authentication.getName(), request.getRequestURI() );
 
         } else if ( jwt != null && tokenProvider.validateToken( jwt ) == TokenProvider.JwtCode.EXPIRED ) {
-            log.info("2-2");
             String refesh = resolveToken( request, REFRESH_HEADER );
             // refresh token을 확인해서 발급해준다.
             if ( refesh != null && tokenProvider.validateToken( refesh ) == TokenProvider.JwtCode.ACCESS ) {
