@@ -38,7 +38,6 @@ public class JwtFilter extends OncePerRequestFilter {
         } else if ( jwt != null && tokenProvider.validateToken( jwt ) == TokenProvider.JwtCode.EXPIRED ) {
             log.info("2-2");
             String refesh = resolveToken( request, REFRESH_HEADER );
-            log.info("2-3 : {}", tokenProvider.validateToken( refesh ) );
             // refresh token을 확인해서 발급해준다.
             if ( refesh != null && tokenProvider.validateToken( refesh ) == TokenProvider.JwtCode.ACCESS ) {
 
