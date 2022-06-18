@@ -138,6 +138,7 @@ public class LoginServiceImpl implements LoginService, Serializable {
         );
 
         return SignInResponseDto.builder()
+                .userId(  userId )
                 .accessToken( "Bearer-" + tokenProvider.createAccessToken( authentication ) )
                 .refreshToken( "Bearer-" + tokenProvider.issueRefreshToken( authentication ) )
                 .build();

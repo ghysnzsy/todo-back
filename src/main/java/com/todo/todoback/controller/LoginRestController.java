@@ -2,12 +2,10 @@ package com.todo.todoback.controller;
 
 import com.todo.todoback.dto.SignInResponseDto;
 import com.todo.todoback.dto.TodoMemberDto;
-import com.todo.todoback.jwt.TokenProvider;
 import com.todo.todoback.service.LoginService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.NoSuchAlgorithmException;
@@ -28,13 +26,19 @@ public class LoginRestController {
     @PostMapping("/signin")
     public ResponseEntity<SignInResponseDto> signInMember(@RequestBody Map<String, String> map ) {
 
-        log.info( "user id = {}", map.get("userId") );
+        log.info( "LoginRestController signInMember useId::", map.get("userId") );
 
         try {
             return ResponseEntity.ok( loginService.signIn( map ) );
         } catch (NoSuchAlgorithmException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @PostMapping("/signout")
+    public ResponseEntity<String>signOutMember(@RequestBody Map<String, String> map) {
+        log.info("LoginRestController signOutMember userId::", map.get("userId"));
+        return ResponseEntity.ok("ok");
     }
 
     /**
@@ -87,7 +91,6 @@ public class LoginRestController {
     @PostMapping("/refreshToken")
     public ResponseEntity<Map> refreshToken(@RequestHeader Map<String, Object> map) {
         log.info("refresh token controller : {}", map.get("refresh"));
-
         return ResponseEntity.ok(map);
     }
 
