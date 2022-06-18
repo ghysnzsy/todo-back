@@ -29,19 +29,23 @@ public class JwtFilter extends OncePerRequestFilter {
 
         String jwt = resolveToken( request, AUTHORIZATION_HEADER );
         if ( jwt != null && tokenProvider.validateToken( jwt ) == TokenProvider.JwtCode.ACCESS ) {
+
+            log.info("JWT Filter ACCESS 1::");
             Authentication authentication = tokenProvider.getAuthentication( jwt );
             SecurityContextHolder.getContext().setAuthentication( authentication );
             log.info( "set Authentication to security context for '{}', uri: {}", authentication.getName(), request.getRequestURI() );
 
         } else if ( jwt != null && tokenProvider.validateToken( jwt ) == TokenProvider.JwtCode.EXPIRED ) {
+
+            log.info("JWT Filter EXPIRED 1::");
             String refesh = resolveToken( request, REFRESH_HEADER );
             // refresh token을 확인해서 발급해준다.
             if ( refesh != null && tokenProvider.validateToken( refesh ) == TokenProvider.JwtCode.ACCESS ) {
 
                 String newRefresh = tokenProvider.reissueRefreshToken( refesh );
-                log.info("new refresh ::{}", newRefresh);
+                log.info("JWT Filter EXPIRED 2::");
                 if ( newRefresh != null ) {
-
+                    log.info("JWT Filter EXPIRED 3::");
                     response.setHeader( REFRESH_HEADER, "Bear-" + newRefresh );
 
                     // Access token 생성
@@ -51,10 +55,10 @@ public class JwtFilter extends OncePerRequestFilter {
 
                     log.info("reissue refresh token & access token");
                 } else {
-                    response.setHeader( REFRESH_HEADER, "123" );
-                    response.setHeader( AUTHORIZATION_HEADER, "123");
-                    request.removeAttribute("Authorization");
-                    request.removeAttribute("refresh");
+                    log.info("JWT Filter EXPIRED 4::");
+                    response.setHeader( REFRESH_HEADER, "" );
+                    response.setHeader( AUTHORIZATION_HEADER, "");
+
                 }
             }
         }  else {

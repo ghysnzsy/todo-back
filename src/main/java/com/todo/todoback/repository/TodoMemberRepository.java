@@ -58,5 +58,14 @@ public interface TodoMemberRepository extends JpaRepository<TodoMember, Long> {
     @Query( value = "select * from todo_member where userid = :userid and userpw = :userpw", nativeQuery = true )
     public TodoMember signIn(@Param("userid") String userid, @Param("userpw") String userpw);
 
+    /**
+     * signOut : 로그아웃
+     * @param userid
+     * @return
+     */
+    @Transactional
+    @Query( value ="delete from refresh_token where user_id = :userid", nativeQuery = true )
+    @Modifying
+    public int signOut(@Param("userid") String userid);
 
 }

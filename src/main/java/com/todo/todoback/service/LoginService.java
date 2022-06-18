@@ -13,9 +13,12 @@ public interface LoginService {
     public TodoMemberDto createMember ( Map<String, String> map ) throws NoSuchAlgorithmException;
 
     public boolean checkDuplicateId( String userId );
+
     public boolean checkDuplicateEmail( String userEmail );
 
     public SignInResponseDto signIn(Map<String, String> map ) throws NoSuchAlgorithmException;
+
+    public int signOut(Map<String, String> map);
 
 
 }

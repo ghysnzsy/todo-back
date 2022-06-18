@@ -163,6 +163,10 @@ public class LoginServiceImpl implements LoginService, Serializable {
 
     }
 
+    @Override
+    public int signOut(Map<String, String> map) {
+        return memberRepository.signOut( map.get("userId") );
+    }
 
 
 }

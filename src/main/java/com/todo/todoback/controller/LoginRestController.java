@@ -8,6 +8,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
@@ -36,9 +38,9 @@ public class LoginRestController {
     }
 
     @PostMapping("/signout")
-    public ResponseEntity<String>signOutMember(@RequestBody Map<String, String> map) {
-        log.info("LoginRestController signOutMember userId::", map.get("userId"));
-        return ResponseEntity.ok("ok");
+    public ResponseEntity<Integer>signOutMember(@RequestBody Map<String, String> map) {
+        log.info("LoginRestController signOutMember userId:: {}", map.get("userId"));
+        return ResponseEntity.ok(loginService.signOut(map));
     }
 
     /**
@@ -89,8 +91,13 @@ public class LoginRestController {
 
     // 토큰 재발행
     @PostMapping("/refreshToken")
-    public ResponseEntity<Map> refreshToken(@RequestHeader Map<String, Object> map) {
+    public ResponseEntity<Map> refreshToken(@RequestHeader Map<String, Object> map, HttpServletRequest req, HttpServletResponse res) {
+
         log.info("refresh token controller : {}", map.get("refresh"));
+
+        map.put( "authorization", res.getHeader("Authorization") );
+        map.put( "refresh", res.getHeader("refresh") );
+
         return ResponseEntity.ok(map);
     }
 
