@@ -28,21 +28,18 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
 
         String jwt = resolveToken( request, AUTHORIZATION_HEADER );
-        log.info("jwt jwt resolve : {}", jwt);
         if ( jwt != null && tokenProvider.validateToken( jwt ) == TokenProvider.JwtCode.ACCESS ) {
-            log.info("1-1");
             Authentication authentication = tokenProvider.getAuthentication( jwt );
             SecurityContextHolder.getContext().setAuthentication( authentication );
             log.info( "set Authentication to security context for '{}', uri: {}", authentication.getName(), request.getRequestURI() );
 
         } else if ( jwt != null && tokenProvider.validateToken( jwt ) == TokenProvider.JwtCode.EXPIRED ) {
-            log.info("2-2");
             String refesh = resolveToken( request, REFRESH_HEADER );
-            log.info("2-3 : {}", tokenProvider.validateToken( refesh ) );
             // refresh token을 확인해서 발급해준다.
             if ( refesh != null && tokenProvider.validateToken( refesh ) == TokenProvider.JwtCode.ACCESS ) {
 
                 String newRefresh = tokenProvider.reissueRefreshToken( refesh );
+                log.info("new refresh ::{}", newRefresh);
                 if ( newRefresh != null ) {
 
                     response.setHeader( REFRESH_HEADER, "Bear-" + newRefresh );
@@ -53,6 +50,11 @@ public class JwtFilter extends OncePerRequestFilter {
                     SecurityContextHolder.getContext().setAuthentication( authentication );
 
                     log.info("reissue refresh token & access token");
+                } else {
+                    response.setHeader( REFRESH_HEADER, "123" );
+                    response.setHeader( AUTHORIZATION_HEADER, "123");
+                    request.removeAttribute("Authorization");
+                    request.removeAttribute("refresh");
                 }
             }
         }  else {
@@ -65,9 +67,6 @@ public class JwtFilter extends OncePerRequestFilter {
     private String resolveToken( HttpServletRequest req, String header ) {
         String bearerToken = req.getHeader( header );
         Enumeration<String> headerNames = req.getHeaderNames();
-
-        log.info( "ref ref bearer info {}", req.getHeader("refresh"));
-        log.info( "ref ref bearer info {}", bearerToken);
 
 //        log.info( "ref ref bearer info {}, {}",  bearerToken, req.getParameter("refresh"));
         if ( bearerToken != null && bearerToken.startsWith("Bearer-") )

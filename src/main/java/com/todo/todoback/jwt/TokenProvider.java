@@ -136,14 +136,6 @@ public class TokenProvider implements InitializingBean {
                 .parseClaimsJws(token)
                 .getBody();
 
-        /*
-        Collection<? extends GrantedAuthority> authorities = Arrays.stream( claims.get( AUTHORITIES_KEY ).toString().split(",") )
-                .map( SimpleGrantedAuthority::new )
-                .collect( Collectors.toList() );
-
-        User principal = new User(claims.getSubject(), "", authorities);
-        return new UsernamePasswordAuthenticationToken( principal, token, authorities );
-         */
         UserDetails userDetails = customUserDetailsService.loadUserByUsername(claims.getSubject());
         return new UsernamePasswordAuthenticationToken( userDetails, token, userDetails.getAuthorities() );
     }
@@ -154,21 +146,6 @@ public class TokenProvider implements InitializingBean {
      * @return
      */
     public JwtCode validateToken( String token ) {
-        /*
-        try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
-            return true;
-        } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-            log.info("잘못된 JWT 서명입니다.");
-        } catch (ExpiredJwtException e) {
-            log.info("만료된 JWT 토큰입니다.");
-        } catch (UnsupportedJwtException e) {
-            log.info("지원되지 않는 JWT 토큰입니다.");
-        } catch (IllegalArgumentException e) {
-            log.info("JWT 토큰이 잘못되었습니다.");
-        }
-        return false;
-         */
 
         try {
             Jwts.parserBuilder().setSigningKey( key ).build().parseClaimsJws( token );

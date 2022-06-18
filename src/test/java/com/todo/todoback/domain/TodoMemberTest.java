@@ -2,7 +2,6 @@ package com.todo.todoback.domain;
 
 import com.todo.todoback.dto.TodoMemberDto;
 import com.todo.todoback.repository.TodoMemberRepository;
-import com.todo.todoback.util.SHA256;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,7 +10,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.io.Serializable;
-import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Optional;
@@ -40,7 +38,7 @@ class TodoMemberTest implements Serializable {
             int resVal = 0;
             TodoMemberDto memberDto = TodoMemberDto.builder()
                     .userid( userid )
-                    .userpw( SHA256.encrypt("test") ) // pw 암호화 : sha256
+                    .userpw( "test" ) // pw 암호화 : sha256
                     .userbirth( "200000000" )
                     .useremail( "01030985843z@naver.com" )
                     .username( "홍길동" )
@@ -57,7 +55,7 @@ class TodoMemberTest implements Serializable {
 //            assertThat( userInfo.getUsername() ).isEqualTo( "홍길동" );
 
 
-        } catch (NoSuchAlgorithmException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
 
