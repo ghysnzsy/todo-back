@@ -14,18 +14,21 @@ import java.util.Map;
 
 
 @Slf4j
-@RestController
+//@RestController
 @RequestMapping("/admin")
 public class AdminRestController {
-
+    /*
     @Autowired
     AdminService adminService;
     @GetMapping("/users")
     public ResponseEntity<Map<String, List>> selectMember(@RequestParam(value="role") String role) {
+
+     */
         /*
             null or isEmpty or all -> select All
             else -> where ROLE_USER, ROLE_ADMIN
          */
+    /*
         log.info("AdminRestController selectMember");
         Map<String, List> map = new HashMap<>();
         map.put("result", adminService.selectMember(role));
@@ -33,9 +36,12 @@ public class AdminRestController {
     }
     @PutMapping("/user")
     public ResponseEntity<String> changeUser(@RequestBody Map<String, Object> map) {
+
+     */
         /*
             Block, Request, Finish
          */
+    /*
         log.info("AdminRestController changeAdmin");
         return ResponseEntity.ok(new String());
     }
@@ -43,4 +49,5 @@ public class AdminRestController {
     public ResponseEntity<String> deleteAdmin(@RequestBody Map<String, Object> map) {
         return ResponseEntity.ok(new String());
     }
+    */
 }

@@ -1,8 +1,8 @@
 package com.todo.todoback.cms.service;
 
-import com.todo.todoback.cms.dto.TodoMemberDto;
-import com.todo.todoback.cms.repository.TodoMemberRepository;
 import com.todo.todoback.cms.domain.TodoMember;
+import com.todo.todoback.cms.dto.TodoMemberDto;
+import com.todo.todoback.cms.repository.TodoCMSMemberRepository;
 import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,12 +13,12 @@ import java.util.List;
 import java.util.Map;
 
 @Slf4j
-@Service
+//@Service
 @NoArgsConstructor
 public class AdminServiceImpl implements AdminService{
-
+    /*
     @Autowired
-    TodoMemberRepository todoMemberRepository;
+    TodoCMSMemberRepository todoMemberRepository;
 
     @Override
     public List<TodoMemberDto> selectMember(String role) {
@@ -50,4 +50,6 @@ public class AdminServiceImpl implements AdminService{
     public boolean deleteMember(String userid) {
         return false;
     }
+
+     */
 }

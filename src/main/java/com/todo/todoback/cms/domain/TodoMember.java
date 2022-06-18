@@ -13,7 +13,7 @@ import java.util.List;
 
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
 @Getter
-@Entity
+//@Entity
 public class TodoMember implements Serializable {
 
     @Id
