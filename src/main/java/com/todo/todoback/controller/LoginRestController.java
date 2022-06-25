@@ -101,6 +101,12 @@ public class LoginRestController {
         return ResponseEntity.ok(map);
     }
 
+    @PostMapping("/todo")
+    public ResponseEntity<String> add(@RequestBody Map<String, String> map) {
+        System.out.println( String.format( "Hello World! %s\n", map.get("item") ));
+        return ResponseEntity.ok("ok");
+    }
+
 
 }
 
