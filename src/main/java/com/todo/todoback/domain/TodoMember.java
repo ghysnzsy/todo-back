@@ -47,6 +47,12 @@ public class TodoMember implements Serializable {
     @OneToMany(fetch = FetchType.LAZY,  mappedBy = "todoMember")
     private List<TodoContents> todoContents = new LinkedList<>();
 
+    // Y : 사용 활성
+    // N : 사용 비활성
+    // S : 사용 대기
+    @Column(name = "active", columnDefinition = "varchar(2) not null default 'N'")
+    private String active;
+
     @Builder
     public TodoMember(String userid, String userpw, String username, String userbirth, String useremail, String createdate, String deldate, Role role) {
         this.userid = userid;
