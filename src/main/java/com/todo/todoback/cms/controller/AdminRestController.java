@@ -14,40 +14,42 @@ import java.util.Map;
 
 
 @Slf4j
-//@RestController
+@RestController
 @RequestMapping("/admin")
 public class AdminRestController {
-    /*
+
     @Autowired
     AdminService adminService;
-    @GetMapping("/users")
-    public ResponseEntity<Map<String, List>> selectMember(@RequestParam(value="role") String role) {
-
-     */
+    @GetMapping("/users/{roleNumber}")
+    public ResponseEntity<Map<String, List>> selectMember(@PathVariable("roleNumber") int roleNumber) {
         /*
             null or isEmpty or all -> select All
             else -> where ROLE_USER, ROLE_ADMIN
          */
-    /*
         log.info("AdminRestController selectMember");
         Map<String, List> map = new HashMap<>();
-        map.put("result", adminService.selectMember(role));
+        
+        map.put("result", adminService.selectMember(roleNumber));
         return ResponseEntity.ok(map);
     }
     @PutMapping("/user")
-    public ResponseEntity<String> changeUser(@RequestBody Map<String, Object> map) {
-
-     */
+    public ResponseEntity<Boolean> changeUser(@RequestBody Map<String, Object> map) {
         /*
             Block, Request, Finish
          */
-    /*
         log.info("AdminRestController changeAdmin");
-        return ResponseEntity.ok(new String());
+        return ResponseEntity.ok(adminService.changeUser(map));
     }
     @DeleteMapping("/user")
-    public ResponseEntity<String> deleteAdmin(@RequestBody Map<String, Object> map) {
-        return ResponseEntity.ok(new String());
+    public ResponseEntity<Boolean> deleteAdmin(@RequestBody Map<String, Object> map) {
+        if(!map.isEmpty()) {
+            String s = map.get("userid").toString();
+            if(!s.isEmpty() && s != null)
+                return ResponseEntity.ok(adminService.deleteMember(map.get("userid").toString()));
+            else {
+                return null;
+            }
+        }
+        else return null;
     }
-    */
 }

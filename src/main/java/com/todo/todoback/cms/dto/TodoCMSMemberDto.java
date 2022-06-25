@@ -11,7 +11,7 @@ import java.util.List;
 
 @Getter
 @NoArgsConstructor
-public class TodoMemberDto {
+public class TodoCMSMemberDto {
 
     @Id
     private Long id;
@@ -29,7 +29,7 @@ public class TodoMemberDto {
     private List<TodoContents> todoContents = new LinkedList<>();
 
     @Builder
-    public TodoMemberDto(
+    public TodoCMSMemberDto(
             Long id,
             String userid,
             String userpw,
