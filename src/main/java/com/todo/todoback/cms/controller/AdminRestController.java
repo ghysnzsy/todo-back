@@ -1,13 +1,12 @@
 package com.todo.todoback.cms.controller;
 
+import com.todo.todoback.cms.dto.TodoCMSMemberDto;
 import com.todo.todoback.cms.service.AdminService;
-import com.todo.todoback.dto.TodoMemberDto;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,17 +52,7 @@ public class AdminRestController {
         else return null;
     }
     @GetMapping("/test/{mi}")
-    public ResponseEntity<Map> sampleReturnString(@PathVariable("mi") String mi) {
-        Map<String, Object> map = new HashMap<>();
-        map.put("a", "a");
-        map.put("b", "b");
-        map.put("c", "c");
-        map.put("d", "input: "+mi);
-        List<Map<String, Object>> list = new ArrayList<>();
-        for(int i = 0; i<4;++i)
-            list.add(map);
-        Map<String, List> map2 = new HashMap<>();
-        map2.put("result", list);
-        return ResponseEntity.ok(map2);
+    public ResponseEntity<List<TodoCMSMemberDto>> sampleReturnString(@PathVariable("mi") String mi) {
+        return ResponseEntity.ok(adminService.selectMember(0));
     }
 }
