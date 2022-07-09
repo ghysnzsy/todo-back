@@ -37,7 +37,8 @@ public interface TodoMemberRepository extends JpaRepository<TodoMember, Long> {
      * @param userEmail
      * @return
      */
-    @Query( value = "select count(*) from todo_member where useremail = :userEmail", nativeQuery = true )
+    @Query( value = "select count(*) from t" +
+            "odo_member where useremail = :userEmail", nativeQuery = true )
     public int checkUserEmail( @Param("userEmail") String userEmail );
 
     /**
