@@ -9,8 +9,8 @@ public interface AdminService {
 
     public List<TodoCMSMemberDto> selectMember(int roleNumber);
 
-    public boolean changeUser(Map<String, Object> map);
+    public int changeUser(Map<String, Object> map);
 
-    public boolean deleteMember(String userid);
+    public int deleteMember(String userid);
 
 }

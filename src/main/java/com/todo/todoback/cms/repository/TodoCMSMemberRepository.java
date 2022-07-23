@@ -21,13 +21,13 @@ public interface TodoCMSMemberRepository extends JpaRepository<TodoMember, Long>
 
     @Transactional
     @Modifying
-    public boolean deleteByUserid(String userid);
+    public int deleteByUserid(String userid);
 
 
 
     @Transactional
     @Modifying
     @Query(value = "update todo_member set stat = :stat where userid = :userid", nativeQuery = true)
-    public boolean updateStatByUserId(@Param("userid") String userid, @Param("stat") String stat);
+    public int updateStatByUserId(@Param("userid") String userid, @Param("stat") String stat);
 
 }

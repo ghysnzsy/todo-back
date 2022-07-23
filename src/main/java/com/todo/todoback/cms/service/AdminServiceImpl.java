@@ -44,12 +44,12 @@ public class AdminServiceImpl implements AdminService{
     }
 
     @Override
-    public boolean changeUser(Map<String, Object> map) {
+    public int changeUser(Map<String, Object> map) {
         return todoMemberRepository.updateStatByUserId(map.get("userid").toString(), map.get("stat").toString());
     }
 
     @Override
-    public boolean deleteMember(String userid) {
+    public int deleteMember(String userid) {
         return todoMemberRepository.deleteByUserid(userid);
     }
 

@@ -32,7 +32,7 @@ public class AdminRestController {
         return ResponseEntity.ok(map);
     }
     @PutMapping("/user")
-    public ResponseEntity<Boolean> changeUser(@RequestBody Map<String, Object> map) {
+    public ResponseEntity<Integer> changeUser(@RequestBody Map<String, Object> map) {
         /*
             Block, Request, Finish
          */
@@ -40,7 +40,7 @@ public class AdminRestController {
         return ResponseEntity.ok(adminService.changeUser(map));
     }
     @DeleteMapping("/user")
-    public ResponseEntity<Boolean> deleteAdmin(@RequestBody Map<String, Object> map) {
+    public ResponseEntity<Integer> deleteAdmin(@RequestBody Map<String, Object> map) {
         if(!map.isEmpty()) {
             String s = map.get("userid").toString();
             if(!s.isEmpty() && s != null)
